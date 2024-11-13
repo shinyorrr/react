@@ -1,6 +1,9 @@
 import { NoticeModalStyled } from './styled';
-
-export const NoticeModal = () => {
+import {FC} from 'react';
+export const NoticeModal: FC<{ modal:boolean; setModal: (modal: boolean) => void}> = ({modal, setModal}) => {
+    const handlerModal = () => {
+        setModal(!modal);
+    };
     return (
         <NoticeModalStyled>
             <div className="container">
@@ -23,7 +26,7 @@ export const NoticeModal = () => {
                 <div className={'button-container'}>
                     <button>저장</button>
                     <button>삭제</button>
-                    <button>나가기</button>
+                    <button onClick={handlerModal}>나가기</button>
                 </div>
             </div>
         </NoticeModalStyled>
