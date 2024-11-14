@@ -6,41 +6,55 @@ import { NoticeModal } from '../NoticeModal/NoticeModal';
 import { Portal } from '../../../common/potal/Portal';
 import { useRecoilState } from 'recoil';
 import { modalState } from '../../../../stores/modalState';
+import { postNoticeApi } from '../../../../api/postNoticeApi';
+
+import { Notice } from '../../../../api/api';
+import { INotice, INoticeListResponse } from '../../../../models/interface/INotice';
 
 
-interface INotice {// interface 네이밍 할때 앞에 I붙이면 좋다
-            noticeIdx:number;
-            title:string;
-            author:string;
-            createdDate:string;
-        
 
-}
+
+
+
 export const NoticeMain = () => {
     const {search} = useLocation();
     const [noticeList, setNoticeList] = useState<INotice[]>();
     const [listCount, setListCount]  = useState<number>(0);
     const [modal, setModal] = useRecoilState<boolean>(modalState); //recoil에 저장된 state
     //const [modal2, setModal2] = useState<boolean>(false); // 컴포넌트에서 만든 state
+    const [index, setIndex] = useState<number>();
 
-    useEffect(() => {
-        searchNoticeList();
-    },[search]);
 
-    const searchNoticeList = (currentPage?: number) => { // 안에 파라미터를 줌으로써
+    useEffect(() => { searchNoticeList(); },[search]);
+
+    const searchNoticeList = async (currentPage?: number) => { // 안에 파라미터를 줌으로써
         currentPage = currentPage || 1;
         const searchParam = new URLSearchParams(search);
         searchParam.append('currentPage',currentPage.toString());
         searchParam.append('pageSize','5');
 
-        axios.post('/board/noticeListJson.do',searchParam).then((res) => {
-            setNoticeList(res.data.notice);
-            setListCount(res.data.noticeCnt);
-        });
+        const searchList = await postNoticeApi<INoticeListResponse>(Notice.getList,searchParam);
+        if (searchList){
+            setNoticeList(searchList.notice);
+            setListCount(searchList.noticeCnt);
+        }
+        // axios.post('/board/noticeListJson.do',searchParam).then((res) => {
+        //     setNoticeList(res.data.notice);
+        //     setListCount(res.data.noticeCnt);
+        // });
     };
 
-    const handlerModal = () => {
+
+
+
+    const handlerModal = (index: number) => {
         setModal(!modal);
+        setIndex(index);
+    }
+
+    const onPostSuccess = () => {
+        setModal(!modal); //modal 닫아줌
+        searchNoticeList(); // list 불러줌
     }
 
     // const handlerModal = () => {
@@ -63,7 +77,7 @@ export const NoticeMain = () => {
                         noticeList?.map((notice) => {
                             return (
                                 // <tr key ={notice.noticeIdx} onClick={handlerModal}></tr>
-                                <tr key ={notice.noticeIdx} onClick={handlerModal}>
+                                <tr key ={notice.noticeIdx} onClick={() => handlerModal(notice.noticeIdx)}>
                                     <StyledTd>{notice.noticeIdx}</StyledTd>
                                     <StyledTd>{notice.title}</StyledTd>
                                     <StyledTd>{notice.author}</StyledTd>
@@ -80,7 +94,7 @@ export const NoticeMain = () => {
             </StyledTable>
             {modal && (
                  <Portal>
-                   <NoticeModal/>
+                   <NoticeModal onSuccess={onPostSuccess} noticeSeq={index} setNoticeSeq={setIndex}/>
                  </Portal>
             )}
 
@@ -88,3 +102,5 @@ export const NoticeMain = () => {
         </>
     );
 };
+
+//export { INotice };
