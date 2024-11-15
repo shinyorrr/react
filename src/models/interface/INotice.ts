@@ -13,7 +13,7 @@ export interface INoticeDatail extends INotice{
     fileExt: string | null;
     fileName: string | null;
     fileSize: number;
-    logicalpath: string | null;
+    logicalPath: string | null;
     phsycalPath: string | null;
 }
 
